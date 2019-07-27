@@ -12,10 +12,7 @@ import org.slf4j.LoggerFactory;
 import javax.persistence.*;
 import java.io.Serializable;
 import java.lang.reflect.Field;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 
 public abstract class AbstractGenericEntityDAOImpl<E extends DomainEntity, PK extends Serializable> implements GenericEntityDAO<E, PK> {
@@ -250,7 +247,15 @@ public abstract class AbstractGenericEntityDAOImpl<E extends DomainEntity, PK ex
 
         try {
             Field[] fields = entity.getClass().getDeclaredFields();
-            for (Field field : fields) {
+            Set<Field> fieldSet = new HashSet<>(Arrays.asList(fields));
+            Class c = entity.getClass().getSuperclass();
+            if (DomainEntity.class.isAssignableFrom(c)) {
+                Field[] superFeildsArray = entity.getClass().getSuperclass().getDeclaredFields();
+                Set<Field> superFeildsSet = new HashSet<>(Arrays.asList(superFeildsArray));
+                fieldSet.addAll(superFeildsSet);
+            }
+
+            for (Field field : fieldSet) {
                 Object fieldValue;
                 field.setAccessible(true);
                 fieldValue = field.get(entity);
@@ -283,7 +288,16 @@ public abstract class AbstractGenericEntityDAOImpl<E extends DomainEntity, PK ex
         try {
             Field[] fields = entity.getClass().getDeclaredFields();
 
-            for (Field field : fields) {
+            Set<Field> fieldSet = new HashSet(Arrays.asList(fields));
+            Class c = entity.getClass().getSuperclass();
+            if (DomainEntity.class.isAssignableFrom(c)) {
+                Field[] superFeildsArray = entity.getClass().getSuperclass().getDeclaredFields();
+                Set<Field> superFeildsSet = new HashSet(Arrays.asList(superFeildsArray));
+                fieldSet.addAll(superFeildsSet);
+            }
+
+
+            for (Field field : fieldSet) {
                 Object fieldValue;
                 field.setAccessible(true);
                 fieldValue = field.get(entity);
@@ -322,19 +336,67 @@ public abstract class AbstractGenericEntityDAOImpl<E extends DomainEntity, PK ex
     @Override
     public long countByExample(E example, StringSearchType searchType) {
         try{
-            Object object = example;
-            StringBuilder query = new StringBuilder("select count(e) from " + object.getClass().getName() + " e where 1 = 1");
+//            Object object = example;
+//            StringBuilder query = new StringBuilder("select count(e) from " + object.getClass().getName() + " e where 1 = 1");
+//
+//            query = new StringBuilder(insertEntityFieldsIntoQuery(query.toString(), example, "e."));
+//
+//            Query q = getEntityManager().createQuery(query.toString(), Long.class);
+//
+//            insertEntityValuesIntoQuery(q, example, searchType);
 
-            query = new StringBuilder(insertEntityFieldsIntoQuery(query.toString(), example, "e."));
-
-            Query q = getEntityManager().createQuery(query.toString(), Long.class);
-
-            insertEntityValuesIntoQuery(q, example, searchType);
-
-            return (long)q.getSingleResult();
+            return countByExample(example, searchType, null, null);
         }
         catch(Exception e){
             logger.error("CountByExample unable to perform for example : " + example, e);
+            throw new RuntimeException("CountByExampleException");
+        }
+    }
+
+    @Override
+    public long countByExample(E example, StringSearchType searchType, List<RangeObject> rangeObjectList, List<CompareObject> compareObjectList) {
+        try {
+            StringBuilder query = new StringBuilder("select count(e) from " + example.getClass().getName() + " e where 1 = 1");
+            query = new StringBuilder(this.insertEntityFieldsIntoQuery(query.toString(), example, "e."));
+            if (rangeObjectList != null && !rangeObjectList.isEmpty()) {
+                Iterator iterator = rangeObjectList.iterator();
+
+                while(iterator.hasNext()) {
+                    RangeObject r = (RangeObject)iterator.next();
+                    query.append(" and " + r.getFieldName() + " >= :" + r.getFieldName() + "lowRange");
+                    query.append(" and " + r.getFieldName() + " <= :" + r.getFieldName() + "highRange");
+                }
+            }
+
+            if (compareObjectList != null && !compareObjectList.isEmpty()) {
+                for(int i = 0; i < compareObjectList.size(); ++i) {
+                    CompareObject c = (CompareObject)compareObjectList.get(i);
+                    query.append(" and " + c.getFieldName() + " " + c.getOperator().getSqlval() + " :" + c.makeFieldNameParam() + "_" + i);
+                }
+            }
+
+            Query q = this.getEntityManager().createQuery(query.toString(), Long.class);
+            this.insertEntityValuesIntoQuery(q, example, searchType);
+            if (rangeObjectList != null && !rangeObjectList.isEmpty()) {
+                Iterator iterator = rangeObjectList.iterator();
+
+                while(iterator.hasNext()) {
+                    RangeObject r = (RangeObject)iterator.next();
+                    q.setParameter(r.getFieldName() + "lowRange", r.getLowRange());
+                    q.setParameter(r.getFieldName() + "highRange", r.getHighRange());
+                }
+            }
+
+            if (compareObjectList != null && !compareObjectList.isEmpty()) {
+                for(int i = 0; i < compareObjectList.size(); ++i) {
+                    CompareObject c = (CompareObject)compareObjectList.get(i);
+                    q.setParameter(c.makeFieldNameParam() + "_" + i, c.getTarget());
+                }
+            }
+
+            return (Long)q.getSingleResult();
+        } catch (Exception e) {
+            this.logger.error("CountByExample unable to perform for example : " + example, e);
             throw new RuntimeException("CountByExampleException");
         }
     }
@@ -353,50 +415,5 @@ public abstract class AbstractGenericEntityDAOImpl<E extends DomainEntity, PK ex
         return getEntityManager().find(persistentClass, primaryKey);
     }
 
-    public long countByExample(E example, StringSearchType searchType, List<RangeObject> rangeObjectList, List<CompareObject> compareObjectList) {
-        try {
-            StringBuilder query = new StringBuilder("select count(e) from " + example.getClass().getName() + " e where 1 = 1");
-            query = new StringBuilder(this.insertEntityFieldsIntoQuery(query.toString(), example, "e."));
-            if (rangeObjectList != null && !rangeObjectList.isEmpty()) {
-                Iterator var7 = rangeObjectList.iterator();
 
-                while(var7.hasNext()) {
-                    RangeObject r = (RangeObject)var7.next();
-                    query.append(" and " + r.getFieldName() + " >= :" + r.getFieldName() + "lowRange");
-                    query.append(" and " + r.getFieldName() + " <= :" + r.getFieldName() + "highRange");
-                }
-            }
-
-            if (compareObjectList != null && !compareObjectList.isEmpty()) {
-                for(int i = 0; i < compareObjectList.size(); ++i) {
-                    CompareObject c = (CompareObject)compareObjectList.get(i);
-                    query.append(" and " + c.getFieldName() + " " + c.getOperator().getSqlval() + " :" + c.makeFieldNameParam() + "_" + i);
-                }
-            }
-
-            Query q = this.getEntityManager().createQuery(query.toString(), Long.class);
-            this.insertEntityValuesIntoQuery(q, example, searchType);
-            if (rangeObjectList != null && !rangeObjectList.isEmpty()) {
-                Iterator var14 = rangeObjectList.iterator();
-
-                while(var14.hasNext()) {
-                    RangeObject r = (RangeObject)var14.next();
-                    q.setParameter(r.getFieldName() + "lowRange", r.getLowRange());
-                    q.setParameter(r.getFieldName() + "highRange", r.getHighRange());
-                }
-            }
-
-            if (compareObjectList != null && !compareObjectList.isEmpty()) {
-                for(int i = 0; i < compareObjectList.size(); ++i) {
-                    CompareObject c = (CompareObject)compareObjectList.get(i);
-                    q.setParameter(c.makeFieldNameParam() + "_" + i, c.getTarget());
-                }
-            }
-
-            return (Long)q.getSingleResult();
-        } catch (Exception var10) {
-            this.logger.error("CountByExample unable to perform for example : " + example, var10);
-            throw new RuntimeException("CountByExampleException");
-        }
-    }
 }
