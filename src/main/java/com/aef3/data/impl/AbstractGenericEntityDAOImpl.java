@@ -1,11 +1,8 @@
 package com.aef3.data.impl;
 
 import com.aef3.data.api.DomainEntity;
-import com.aef3.data.api.qbe.CompareObject;
-import com.aef3.data.api.qbe.RangeObject;
-import com.aef3.data.api.qbe.SortObject;
+import com.aef3.data.api.qbe.*;
 import com.aef3.data.api.GenericEntityDAO;
-import com.aef3.data.api.qbe.StringSearchType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,6 +10,7 @@ import javax.persistence.*;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.*;
+import java.util.stream.IntStream;
 
 
 public abstract class AbstractGenericEntityDAOImpl<E extends DomainEntity, PK extends Serializable> implements GenericEntityDAO<E, PK> {
@@ -105,7 +103,7 @@ public abstract class AbstractGenericEntityDAOImpl<E extends DomainEntity, PK ex
 
     @Override
     public List<E> findByExample(E example, List<SortObject> sortObjectList, int startIndex, int pageSize, StringSearchType searchType) {
-        return findByExample(example, sortObjectList, startIndex, pageSize, searchType, null, null);
+        return findByExample(example, sortObjectList, startIndex, pageSize, searchType, null, null, null);
     }
 
     @Override
@@ -113,6 +111,16 @@ public abstract class AbstractGenericEntityDAOImpl<E extends DomainEntity, PK ex
                                  int startIndex, int pageSize,
                                  StringSearchType searchType, List<RangeObject> rangeObjectList,
                                  List<CompareObject> compareObjectList) {
+        return findByExample(example, sortObjectList, startIndex, pageSize,
+                searchType, rangeObjectList, compareObjectList, null);
+    }
+
+    @Override
+    public List<E> findByExample(E example, List<SortObject> sortObjectList,
+                                 int startIndex, int pageSize,
+                                 StringSearchType searchType, List<RangeObject> rangeObjectList,
+                                 List<CompareObject> compareObjectList,
+                                 List<ContainObject> containObjectList) {
         try {
             Object object = example;
             StringBuilder query = new StringBuilder("SELECT e from " + object.getClass().getName() + " e where 1 = 1");
@@ -133,6 +141,11 @@ public abstract class AbstractGenericEntityDAOImpl<E extends DomainEntity, PK ex
                 }
             }
 
+            if (containObjectList != null && !containObjectList.isEmpty()) {
+                for (ContainObject c : containObjectList) {
+                    query.append(" and " + c.getFieldName() + " in :" + c.getFieldName() + "list");
+                }
+            }
 
             if (sortObjectList != null && !sortObjectList.isEmpty()) {
                 query.append(" ORDER BY ");
@@ -147,8 +160,6 @@ public abstract class AbstractGenericEntityDAOImpl<E extends DomainEntity, PK ex
                 }
                 query = new StringBuilder(String.valueOf(arr));
             }
-
-
 
             Query q = getEntityManager().createQuery(query.toString(), example.getClass());
 
@@ -165,6 +176,13 @@ public abstract class AbstractGenericEntityDAOImpl<E extends DomainEntity, PK ex
                 for(int i = 0; i < compareObjectList.size(); ++i) {
                     CompareObject c = (CompareObject)compareObjectList.get(i);
                     q.setParameter(c.makeFieldNameParam() + "_" + i, c.getTarget());
+                }
+            }
+
+            if (containObjectList != null && !containObjectList.isEmpty()) {
+                for (int i = 0; i < containObjectList.size(); i++) {
+                    ContainObject c = containObjectList.get(i);
+                    q.setParameter(c.getFieldName() + "_" + i, c.getValueList());
                 }
             }
 
@@ -186,7 +204,7 @@ public abstract class AbstractGenericEntityDAOImpl<E extends DomainEntity, PK ex
 
     @Override
     public List<E> findByExample(E example, int startIndex, int pageSize, StringSearchType searchType, List<RangeObject> rangeObjectList) {
-        return findByExample(example, null, startIndex, pageSize, searchType, rangeObjectList, null);
+        return findByExample(example, null, startIndex, pageSize, searchType, rangeObjectList, null, null);
     }
 
     @Override
@@ -201,12 +219,12 @@ public abstract class AbstractGenericEntityDAOImpl<E extends DomainEntity, PK ex
 
     @Override
     public List<E> findByExample(E example, List<SortObject> sortObjectList, List<RangeObject> rangeObjectList) {
-        return findByExample(example, sortObjectList, defaultStartIndex, defaultPageSize, StringSearchType.EXPAND_BOTH_SIDES, rangeObjectList, null);
+        return findByExample(example, sortObjectList, defaultStartIndex, defaultPageSize, StringSearchType.EXPAND_BOTH_SIDES, rangeObjectList, null, null);
     }
 
     @Override
     public List<E> findByExample(E example, List<SortObject> sortObjectList, StringSearchType searchType, List<RangeObject> rangeObjectList) {
-        return findByExample(example, sortObjectList, defaultStartIndex, defaultPageSize, searchType, rangeObjectList, null);
+        return findByExample(example, sortObjectList, defaultStartIndex, defaultPageSize, searchType, rangeObjectList, null, null);
     }
 
     @Override
@@ -355,6 +373,11 @@ public abstract class AbstractGenericEntityDAOImpl<E extends DomainEntity, PK ex
 
     @Override
     public long countByExample(E example, StringSearchType searchType, List<RangeObject> rangeObjectList, List<CompareObject> compareObjectList) {
+        return countByExample(example, searchType, rangeObjectList, compareObjectList, null);
+    }
+
+    @Override
+    public long countByExample(E example, StringSearchType searchType, List<RangeObject> rangeObjectList, List<CompareObject> compareObjectList, List<ContainObject> containObjectList) {
         try {
             StringBuilder query = new StringBuilder("select count(e) from " + example.getClass().getName() + " e where 1 = 1");
             query = new StringBuilder(this.insertEntityFieldsIntoQuery(query.toString(), example, "e."));
@@ -375,6 +398,12 @@ public abstract class AbstractGenericEntityDAOImpl<E extends DomainEntity, PK ex
                 }
             }
 
+            if (containObjectList != null && !containObjectList.isEmpty()) {
+                for (ContainObject c : containObjectList) {
+                    query.append(" and " + c.getFieldName() + " in :" + c.getFieldName() + "list");
+                }
+            }
+
             Query q = this.getEntityManager().createQuery(query.toString(), Long.class);
             this.insertEntityValuesIntoQuery(q, example, searchType);
             if (rangeObjectList != null && !rangeObjectList.isEmpty()) {
@@ -391,6 +420,13 @@ public abstract class AbstractGenericEntityDAOImpl<E extends DomainEntity, PK ex
                 for(int i = 0; i < compareObjectList.size(); ++i) {
                     CompareObject c = (CompareObject)compareObjectList.get(i);
                     q.setParameter(c.makeFieldNameParam() + "_" + i, c.getTarget());
+                }
+            }
+
+            if (containObjectList != null && !containObjectList.isEmpty()) {
+                for (int i = 0; i < containObjectList.size(); i++) {
+                    ContainObject c = containObjectList.get(i);
+                    q.setParameter(c.getFieldName() + "_" + i, c.getValueList());
                 }
             }
 

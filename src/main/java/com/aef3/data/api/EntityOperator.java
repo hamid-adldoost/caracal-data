@@ -1,10 +1,7 @@
 package com.aef3.data.api;
 
 
-import com.aef3.data.api.qbe.CompareObject;
-import com.aef3.data.api.qbe.RangeObject;
-import com.aef3.data.api.qbe.SortObject;
-import com.aef3.data.api.qbe.StringSearchType;
+import com.aef3.data.api.qbe.*;
 
 import java.io.Serializable;
 import java.util.List;
@@ -27,7 +24,12 @@ public interface EntityOperator<E extends DomainEntity, PK extends Serializable>
 
     List<E> findByExample(E example, List<SortObject> sortObjectList, int startIndex, int pageSize, StringSearchType searchType);
 
-    List<E> findByExample(E example, List<SortObject> sortObjectList, int startIndex, int pageSize, StringSearchType searchType, List<RangeObject> rangeObjectList, List<CompareObject> compareObjectList);
+    List<E> findByExample(E example, List<SortObject> sortObjectList, int startIndex, int pageSize, StringSearchType searchType, List<RangeObject> rangeObjectList, List<CompareObject> compareObjectList, List<ContainObject> containObjectList);
+
+    List<E> findByExample(E example, List<SortObject> sortObjectList,
+                                 int startIndex, int pageSize,
+                                 StringSearchType searchType, List<RangeObject> rangeObjectList,
+                                 List<CompareObject> compareObjectList);
 
     List<E> findByExample(E example, int startIndex, int pageSize, StringSearchType searchType, List<RangeObject> rangeObjectList);
 
@@ -56,6 +58,8 @@ public interface EntityOperator<E extends DomainEntity, PK extends Serializable>
     long countByExample(E example, StringSearchType searchType);
 
     long countByExample(E var1, StringSearchType var2, List<RangeObject> var3, List<CompareObject> var4);
+
+    long countByExample(E example, StringSearchType searchType, List<RangeObject> rangeObjectList, List<CompareObject> compareObjectList, List<ContainObject> containObjectList);
 
     void removeByExample(E example, StringSearchType searchType);
 
