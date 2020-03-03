@@ -8,4 +8,7 @@ import java.io.Serializable;
  * @since it-1
  */
 public interface DomainEntity extends Serializable {
+
+    public boolean isAuditable();
+
 }

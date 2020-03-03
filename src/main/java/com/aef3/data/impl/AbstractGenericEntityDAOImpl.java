@@ -3,6 +3,10 @@ package com.aef3.data.impl;
 import com.aef3.data.api.DomainEntity;
 import com.aef3.data.api.qbe.*;
 import com.aef3.data.api.GenericEntityDAO;
+import com.aef3.data.audit.AuditHistory;
+import com.aef3.data.audit.AuditOperationType;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,9 +44,30 @@ public abstract class AbstractGenericEntityDAOImpl<E extends DomainEntity, PK ex
         return clazz.getAnnotation(Entity.class) != null;
     }
 
+    public abstract String getCurrentUser();
+
+    private AuditHistory AuditHistoryGenerator(E entity) {
+        AuditHistory auditHistory = new AuditHistory();
+        auditHistory.setCreationDate(new Date());
+        auditHistory.setCreator(getCurrentUser());
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            auditHistory.setValue(mapper.writeValueAsString(entity));
+            auditHistory.setEntityType(entity.getClass().getSimpleName());
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        return auditHistory;
+    }
+
     @Override
     public E save(E entity) {
         E persistentEntity = getEntityManager().merge(entity);
+        if(entity.isAuditable()) {
+            AuditHistory auditHistory = this.AuditHistoryGenerator(persistentEntity);
+            auditHistory.setOperation(AuditOperationType.SAVE.name());
+            getEntityManager().persist(auditHistory);
+        }
         getEntityManager().flush();
         return persistentEntity;
     }
@@ -51,6 +76,11 @@ public abstract class AbstractGenericEntityDAOImpl<E extends DomainEntity, PK ex
     public void save(List<E> entities) {
         for (E entity : entities) {
             E persistentEntity = getEntityManager().merge(entity);
+            if(entity.isAuditable()) {
+                AuditHistory auditHistory = this.AuditHistoryGenerator(persistentEntity);
+                auditHistory.setOperation(AuditOperationType.SAVE.name());
+                getEntityManager().persist(auditHistory);
+            }
         }
         getEntityManager().flush();
     }
@@ -61,6 +91,9 @@ public abstract class AbstractGenericEntityDAOImpl<E extends DomainEntity, PK ex
             E entity = getEntityManager().find(this.persistentClass, id);
             if (entity != null) {
                 getEntityManager().remove(entity);
+                AuditHistory auditHistory = this.AuditHistoryGenerator(entity);
+                auditHistory.setOperation(AuditOperationType.REMOVE.name());
+                getEntityManager().persist(auditHistory);
                 getEntityManager().flush();
             }
         }
@@ -71,6 +104,9 @@ public abstract class AbstractGenericEntityDAOImpl<E extends DomainEntity, PK ex
         idList.forEach(e->{
             E entity = getEntityManager().find(this.persistentClass, e);
             getEntityManager().remove(entity);
+            AuditHistory auditHistory = this.AuditHistoryGenerator(entity);
+            auditHistory.setOperation(AuditOperationType.REMOVE.name());
+            getEntityManager().persist(auditHistory);
         });
         getEntityManager().flush();
     }
