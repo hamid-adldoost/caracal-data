@@ -63,6 +63,7 @@ public abstract class AbstractGenericEntityDAOImpl<E extends DomainEntity, PK ex
     @Override
     public E save(E entity) {
         E persistentEntity = getEntityManager().merge(entity);
+        getEntityManager().flush();
         if(entity.isAuditable()) {
             AuditHistory auditHistory = this.AuditHistoryGenerator(persistentEntity);
             auditHistory.setOperation(AuditOperationType.SAVE.name());
@@ -76,6 +77,7 @@ public abstract class AbstractGenericEntityDAOImpl<E extends DomainEntity, PK ex
     public void save(List<E> entities) {
         for (E entity : entities) {
             E persistentEntity = getEntityManager().merge(entity);
+            getEntityManager().flush();
             if(entity.isAuditable()) {
                 AuditHistory auditHistory = this.AuditHistoryGenerator(persistentEntity);
                 auditHistory.setOperation(AuditOperationType.SAVE.name());

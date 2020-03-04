@@ -11,10 +11,10 @@ public abstract class GeneralAuditHistoryDao extends AbstractDAOImpl<AuditHistor
     }
 
     public List<AuditHistory> getHistory(String entityName, Long id) {
-        return getEntityManager().createQuery("select e from AuditHistory e " +
-                "where e.entityName = :entityName and id = :id", AuditHistory.class)
-                .setParameter("entityName", entityName)
-                .setParameter("id", id)
+        return getEntityManager().createNativeQuery("select * from audit_history" +
+                " where entity_type = ? and JSON_EXTRACT(value , \"$.id\") = ?", AuditHistory.class)
+                .setParameter(1, entityName)
+                .setParameter(2, id)
                 .getResultList();
     }
 
