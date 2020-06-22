@@ -20,4 +20,9 @@ import java.util.List;
 
 public interface GenericEntityDAO<E extends DomainEntity, PK extends Serializable> extends EntityOperator<E, PK> {
 
+
+    public default String getCurrentUser(){
+        return "Anonymous";
+    }
+
 }

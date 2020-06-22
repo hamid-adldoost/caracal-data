@@ -24,12 +24,19 @@ public interface EntityOperator<E extends DomainEntity, PK extends Serializable>
 
     List<E> findByExample(E example, List<SortObject> sortObjectList, int startIndex, int pageSize, StringSearchType searchType);
 
-    List<E> findByExample(E example, List<SortObject> sortObjectList, int startIndex, int pageSize, StringSearchType searchType, List<RangeObject> rangeObjectList, List<CompareObject> compareObjectList, List<ContainObject> containObjectList);
+    List<E> findByExample(E example, List<SortObject> sortObjectList, int startIndex, int pageSize,
+                          StringSearchType searchType, List<RangeObject> rangeObjectList,
+                          List<CompareObject> compareObjectList, List<ContainObject> containObjectList, String wherePhraseExt);
 
     List<E> findByExample(E example, List<SortObject> sortObjectList,
                                  int startIndex, int pageSize,
                                  StringSearchType searchType, List<RangeObject> rangeObjectList,
                                  List<CompareObject> compareObjectList);
+
+    List<E> findByExample(E example, List<SortObject> sortObjectList,
+                          int startIndex, int pageSize,
+                          StringSearchType searchType, List<RangeObject> rangeObjectList,
+                          List<CompareObject> compareObjectList, String wherePhraseExt);
 
     List<E> findByExample(E example, int startIndex, int pageSize, StringSearchType searchType, List<RangeObject> rangeObjectList);
 
@@ -59,7 +66,12 @@ public interface EntityOperator<E extends DomainEntity, PK extends Serializable>
 
     long countByExample(E var1, StringSearchType var2, List<RangeObject> var3, List<CompareObject> var4);
 
-    long countByExample(E example, StringSearchType searchType, List<RangeObject> rangeObjectList, List<CompareObject> compareObjectList, List<ContainObject> containObjectList);
+    long countByExample(E var1, StringSearchType var2, List<RangeObject> var3, List<CompareObject> var4,
+                        String wherePhraseExt);
+
+    long countByExample(E example, StringSearchType searchType, List<RangeObject> rangeObjectList,
+                        List<CompareObject> compareObjectList, List<ContainObject> containObjectList,
+                        String wherePhraseExt);
 
     void removeByExample(E example, StringSearchType searchType);
 
