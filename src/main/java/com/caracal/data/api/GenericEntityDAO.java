@@ -1,13 +1,7 @@
-package com.aef3.data.api;
+package com.caracal.data.api;
 
-
-import com.aef3.data.api.qbe.CompareObject;
-import com.aef3.data.api.qbe.ContainObject;
-import com.aef3.data.api.qbe.RangeObject;
-import com.aef3.data.api.qbe.StringSearchType;
 
 import java.io.Serializable;
-import java.util.List;
 
 /**
  * Generic Data access object interface.

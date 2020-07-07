@@ -1,6 +1,6 @@
-package com.aef3.data.audit;
+package com.caracal.data.audit;
 
-import com.aef3.data.api.DomainEntity;
+import com.caracal.data.api.DomainEntity;
 
 import javax.persistence.*;
 import java.util.Date;

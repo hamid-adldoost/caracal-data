@@ -1,7 +1,7 @@
-package com.aef3.data;
+package com.caracal.data;
 
-import com.aef3.data.api.qbe.SortObject;
-import com.aef3.data.api.qbe.SortOrder;
+import com.caracal.data.api.qbe.SortObject;
+import com.caracal.data.api.qbe.SortOrder;
 
 public class SortUtil {
 

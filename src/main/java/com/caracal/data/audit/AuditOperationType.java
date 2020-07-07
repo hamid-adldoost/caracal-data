@@ -1,4 +1,4 @@
-package com.aef3.data.audit;
+package com.caracal.data.audit;
 
 public enum AuditOperationType {
 

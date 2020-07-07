@@ -1,4 +1,4 @@
-package com.aef3.data.api.qbe;
+package com.caracal.data.api.qbe;
 
 import java.util.List;
 

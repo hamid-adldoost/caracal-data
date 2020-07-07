@@ -1,6 +1,6 @@
-package com.aef3.data;
+package com.caracal.data;
 
-import com.aef3.data.api.DomainDto;
+import com.caracal.data.api.DomainDto;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;

@@ -1,6 +1,6 @@
-package com.aef3.data.audit;
+package com.caracal.data.audit;
 
-import com.aef3.data.api.DomainDto;
+import com.caracal.data.api.DomainDto;
 
 import java.util.Date;
 

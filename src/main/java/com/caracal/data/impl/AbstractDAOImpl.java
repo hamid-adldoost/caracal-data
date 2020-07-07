@@ -3,10 +3,10 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.aef3.data.impl;
+package com.caracal.data.impl;
 
-import com.aef3.data.api.AbstractDAO;
-import com.aef3.data.api.DomainEntity;
+import com.caracal.data.api.AbstractDAO;
+import com.caracal.data.api.DomainEntity;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;

@@ -1,6 +1,6 @@
-package com.aef3.data.audit;
+package com.caracal.data.audit;
 
-import com.aef3.data.impl.AbstractDAOImpl;
+import com.caracal.data.impl.AbstractDAOImpl;
 
 import java.util.List;
 

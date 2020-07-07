@@ -1,10 +1,10 @@
-package com.aef3.data.impl;
+package com.caracal.data.impl;
 
-import com.aef3.data.api.DomainEntity;
-import com.aef3.data.api.qbe.*;
-import com.aef3.data.api.GenericEntityDAO;
-import com.aef3.data.audit.AuditHistory;
-import com.aef3.data.audit.AuditOperationType;
+import com.caracal.data.api.DomainEntity;
+import com.caracal.data.api.GenericEntityDAO;
+import com.caracal.data.api.qbe.*;
+import com.caracal.data.audit.AuditHistory;
+import com.caracal.data.audit.AuditOperationType;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -14,7 +14,6 @@ import javax.persistence.*;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.*;
-import java.util.stream.IntStream;
 
 
 public abstract class AbstractGenericEntityDAOImpl<E extends DomainEntity, PK extends Serializable> implements GenericEntityDAO<E, PK> {

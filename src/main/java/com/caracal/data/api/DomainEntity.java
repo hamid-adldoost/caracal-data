@@ -1,4 +1,4 @@
-package com.aef3.data.api;
+package com.caracal.data.api;
 
 import java.io.Serializable;
 

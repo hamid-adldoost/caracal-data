@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.aef3.data.api;
+package com.caracal.data.api;
 
 import java.io.Serializable;
 
