@@ -88,13 +88,14 @@ public abstract class AbstractGenericEntityDAOImpl<E extends DomainEntity, PK ex
     public void remove(PK id) {
         if (id != null) {
             E entity = getEntityManager().find(this.persistentClass, id);
+            getEntityManager().remove(entity);
             if (entity != null) {
-                getEntityManager().remove(entity);
                 AuditHistory auditHistory = this.AuditHistoryGenerator(entity);
                 auditHistory.setOperation(AuditOperationType.REMOVE.name());
                 getEntityManager().persist(auditHistory);
-                getEntityManager().flush();
             }
+            getEntityManager().flush();
+
         }
     }
 
@@ -103,9 +104,11 @@ public abstract class AbstractGenericEntityDAOImpl<E extends DomainEntity, PK ex
         idList.forEach(e -> {
             E entity = getEntityManager().find(this.persistentClass, e);
             getEntityManager().remove(entity);
-            AuditHistory auditHistory = this.AuditHistoryGenerator(entity);
-            auditHistory.setOperation(AuditOperationType.REMOVE.name());
-            getEntityManager().persist(auditHistory);
+            if (entity != null) {
+                AuditHistory auditHistory = this.AuditHistoryGenerator(entity);
+                auditHistory.setOperation(AuditOperationType.REMOVE.name());
+                getEntityManager().persist(auditHistory);
+            }
         });
         getEntityManager().flush();
     }
@@ -458,7 +461,7 @@ public abstract class AbstractGenericEntityDAOImpl<E extends DomainEntity, PK ex
             }
 
             if (wherePhraseExt != null && !wherePhraseExt.isEmpty()) {
-                    query.append(" " + wherePhraseExt);
+                query.append(" " + wherePhraseExt);
             }
 
             Query q = this.getEntityManager().createQuery(query.toString(), Long.class);
